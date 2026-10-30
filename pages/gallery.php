@@ -38,7 +38,7 @@ try {
     error_log('Gallery albums query: ' . $e->getMessage());
 }
 
-$pageTitle = $openAlbum ? e($openAlbum['title']) . ' — ' . t('gallery.gallery') : t('gallery.gallery');
+$pageTitle = $openAlbum ? $openAlbum['title'] . ' — ' . t('gallery.gallery') : t('gallery.gallery');
 require __DIR__ . '/../includes/header.php';
 ?>
 

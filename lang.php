@@ -36,9 +36,16 @@ if ($referer !== '' && $host !== '') {
 }
 
 if ($redirect === '') {
-    // Safe fallback: index.php relative to this script's directory.
-    $base = rtrim(dirname($_SERVER['REQUEST_URI'] ?? '/lang.php'), '/');
-    $redirect = $base . '/index.php';
+    // Safe fallback: use SCRIPT_NAME (server-normalized, no query string, no
+    // traversal sequences) rather than REQUEST_URI which an upstream proxy may
+    // pass unsanitized.  SCRIPT_NAME always points to this exact file, so its
+    // dirname is the app root path under the web root (e.g. /Simedalis).
+    $scriptBase = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? '/lang.php'), '/');
+    // Sanity-check: must start with '/' and contain no '..' components.
+    if ($scriptBase === '' || str_contains($scriptBase, '..')) {
+        $scriptBase = '';
+    }
+    $redirect = $scriptBase . '/index.php';
 }
 
 // Strip CR/LF to prevent HTTP response header injection via a crafted Referer.
