@@ -36,7 +36,6 @@ if (!function_exists('t')) {
             'home.donate_now'    => 'Donate Now',
 
             // About page
-            'about.who_we_are'    => 'Who We Are',
             'about.our_mission'   => 'Our Mission',
             'about.our_vision'    => 'Our Vision',
             'about.what_we_do'    => 'What We Do',
@@ -161,7 +160,6 @@ if (!function_exists('t')) {
             'home.donate_now'    => 'አሁን ይለግሱ',
 
             // About page
-            'about.who_we_are'    => 'እኛ ማን ነን',
             'about.our_mission'   => 'ተልዕኮአችን',
             'about.our_vision'    => 'ራዕያችን',
             'about.what_we_do'    => 'የምናደርገው',
@@ -270,6 +268,15 @@ if (!function_exists('t')) {
      * Return the translated string for the given key.
      * Falls back to English if the key is missing in the active language.
      * Falls back to the key itself if missing in both.
+     *
+     * KEY CATEGORIES — two mutually exclusive types:
+     *   • Plain-text keys  — safe to wrap in e() for HTML output.
+     *   • HTML-bearing keys — embed raw HTML tags or entities; must NOT be
+     *     wrapped in e() (that would double-encode them). HTML-bearing keys in
+     *     this registry include: home.tagline, home.about_body, contact.send_email,
+     *     donations.submit_your, gallery.back, announcements.read_more,
+     *     announcements.back (and their 'am' equivalents).
+     *     When adding a new key, note its category here and at its call site.
      */
     function t(string $key): string
     {

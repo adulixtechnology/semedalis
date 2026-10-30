@@ -21,7 +21,10 @@ $_SESSION['lang'] = $lang;
 
 // Build a safe redirect target.
 // Use HTTP_REFERER only if it shares the same host as the current request.
-$host    = $_SERVER['HTTP_HOST'] ?? '';
+// NOTE: HTTP_HOST can theoretically be forged on proxied deployments.
+// SERVER_NAME is set by the web-server config (Apache ServerName / php -S host)
+// and is harder to spoof; use it as the trusted anchor when available.
+$host    = $_SERVER['SERVER_NAME'] ?? ($_SERVER['HTTP_HOST'] ?? '');
 $referer = $_SERVER['HTTP_REFERER'] ?? '';
 $redirect = '';
 
@@ -37,6 +40,9 @@ if ($redirect === '') {
     $base = rtrim(dirname($_SERVER['REQUEST_URI'] ?? '/lang.php'), '/');
     $redirect = $base . '/index.php';
 }
+
+// Strip CR/LF to prevent HTTP response header injection via a crafted Referer.
+$redirect = str_replace(["\r", "\n"], '', $redirect);
 
 header('Location: ' . $redirect);
 exit;

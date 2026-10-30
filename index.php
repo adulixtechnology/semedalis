@@ -55,6 +55,7 @@ require __DIR__ . '/includes/header.php';
         <div class="about-preview">
             <div class="about-preview__text">
                 <p class="about-preview__label"><?= t('home.who_we_are') ?></p>
+                <?php /* HTML-bearing key — do not wrap in e(); see t() docblock */ ?>
                 <h2 class="about-preview__title"><?= t('home.tagline') ?></h2>
                 <p class="about-preview__body"><?= t('home.about_body') ?></p>
                 <a class="btn btn--primary" href="<?= e(url('pages/about.php')) ?>#about"><?= t('home.learn_more') ?></a>
