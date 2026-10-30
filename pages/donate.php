@@ -19,25 +19,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $donor_name = trim($_POST['donor_name'] ?? '');
     set_old('donor_name', $donor_name);
     if ($donor_name === '') {
-        $errors['donor_name'] = 'Please enter your name.';
+        $errors['donor_name'] = t('donate.err_name_required');
     } elseif (mb_strlen($donor_name) > 150) {
-        $errors['donor_name'] = 'Name must be 150 characters or fewer.';
+        $errors['donor_name'] = t('donate.err_name_long');
     }
 
     $email = trim($_POST['email'] ?? '');
     set_old('email', $email);
     if ($email !== '') {
         if (mb_strlen($email) > 150) {
-            $errors['email'] = 'Email must be 150 characters or fewer.';
+            $errors['email'] = t('donate.err_email_long');
         } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors['email'] = 'Please enter a valid email address.';
+            $errors['email'] = t('donate.err_email_invalid');
         }
     }
 
     $phone = trim($_POST['phone'] ?? '');
     set_old('phone', $phone);
     if ($phone !== '' && mb_strlen($phone) > 50) {
-        $errors['phone'] = 'Phone must be 50 characters or fewer.';
+        $errors['phone'] = t('donate.err_phone_long');
     }
 
     $amount = trim($_POST['amount'] ?? '');
@@ -45,20 +45,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($amount !== '') {
         // Decimal >= 0, <= 2 decimal places, <= 9999999999.99 (decimal(12,2)).
         if (!preg_match('/^\d{1,10}(\.\d{1,2})?$/', $amount)) {
-            $errors['amount'] = 'Enter a valid amount (up to 2 decimal places).';
+            $errors['amount'] = t('donate.err_amount_invalid');
         }
     }
 
     $bank_reference = trim($_POST['bank_reference'] ?? '');
     set_old('bank_reference', $bank_reference);
     if ($bank_reference !== '' && mb_strlen($bank_reference) > 255) {
-        $errors['bank_reference'] = 'Bank reference must be 255 characters or fewer.';
+        $errors['bank_reference'] = t('donate.err_ref_long');
     }
 
     $message = trim($_POST['message'] ?? '');
     set_old('message', $message);
     if ($message !== '' && mb_strlen($message) > 65000) {
-        $errors['message'] = 'Message must be 65000 characters or fewer.';
+        $errors['message'] = t('donate.err_msg_long');
     }
 
     // --- Validate + move the screenshot (only once text fields are clean) ----
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $upload = validate_upload('screenshot', 'donations');
         if ($upload === '') {
             // No file was uploaded — required field.
-            $errors['screenshot'] = 'Please upload a payment screenshot.';
+            $errors['screenshot'] = t('donate.err_screenshot_required');
         } elseif (ctype_digit($upload[0] ?? '')) {
             // SUCCESS: a bare filename (starts with a digit); file already moved.
             $screenshot = $upload;
@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // DB failure: remove the moved file so no orphan remains (fix #3).
             @unlink(dirname(__DIR__) . '/backend/uploads/donations/' . $screenshot);
             error_log('Donation insert failed: ' . $e->getMessage());
-            $errors['form'] = 'Sorry, we could not submit your donation right now. Please try again.';
+            $errors['form'] = t('donate.err_form_generic');
         }
     }
 }

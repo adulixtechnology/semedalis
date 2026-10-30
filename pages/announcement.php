@@ -25,6 +25,7 @@ $pageTitle = $announcement ? $announcement['title'] : t('announcements.not_found
 require __DIR__ . '/../includes/header.php';
 ?>
 <div class="container">
+    <?php /* HTML-bearing key — do not wrap in e(); see t() docblock */ ?>
     <a class="back-link" href="<?= e(url('pages/announcements.php')) ?>"><?= t('announcements.back') ?></a>
 
     <?php if ($announcement): ?>

@@ -75,6 +75,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="contact-cta">
         <div class="contact-cta__inner">
             <p class="contact-cta__label"><?= t('contact.ready') ?></p>
+            <?php /* HTML-bearing key — do not wrap in e(); see t() docblock */ ?>
             <h2 class="contact-cta__title"><?= t('contact.send_email') ?></h2>
             <p class="contact-cta__body"><?= t('contact.cta_body') ?></p>
             <a class="btn btn--white contact-cta__btn" href="mailto:<?= e($contactEmail) ?>"><?= t('contact.email_us_now') ?></a>

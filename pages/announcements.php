@@ -44,6 +44,7 @@ require __DIR__ . '/../includes/header.php';
                         <span class="news-card__date"><?= e(format_date($ann['created_at'] ?? '')) ?></span>
                         <span class="news-card__lang"><?= e(strtoupper((string) ($ann['language'] ?? 'en'))) ?></span>
                     </div>
+                    <?php /* HTML-bearing key — do not wrap in e(); see t() docblock */ ?>
                     <a href="<?= e(url('pages/announcement.php?id=' . (int) $ann['id'])) ?>" class="news-card__link"><?= t('announcements.read_more') ?></a>
                 </div>
             </article>

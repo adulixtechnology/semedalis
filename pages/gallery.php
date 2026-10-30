@@ -48,6 +48,7 @@ require __DIR__ . '/../includes/header.php';
         <?php if ($openAlbum): ?>
         <!-- ── Album view ── -->
         <div class="gallery-album-head">
+            <?php /* HTML-bearing key — do not wrap in e(); see t() docblock */ ?>
             <a href="<?= e(url('pages/gallery.php')) ?>" class="gallery-back"><?= t('gallery.back') ?></a>
             <h1><?= e($openAlbum['title']) ?></h1>
             <?php if (!empty($openAlbum['description'])): ?>

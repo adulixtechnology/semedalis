@@ -110,6 +110,7 @@ require __DIR__ . '/../includes/header.php';
         <div class="donate-cta-card">
             <div class="donate-cta-card__inner">
                 <p class="donate-cta-card__label"><?= t('donations.ready') ?></p>
+                <?php /* HTML-bearing key — do not wrap in e(); see t() docblock */ ?>
                 <h2 class="donate-cta-card__title"><?= t('donations.submit_your') ?></h2>
                 <p class="donate-cta-card__body"><?= t('donations.submit_desc') ?></p>
                 <a class="btn btn--white donate-cta-card__btn" href="<?= e(url('pages/donate.php')) ?>"><?= t('donations.submit_donation') ?></a>

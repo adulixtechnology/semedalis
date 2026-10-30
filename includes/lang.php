@@ -38,7 +38,6 @@ if (!function_exists('t')) {
             // About page
             'about.our_mission'   => 'Our Mission',
             'about.our_vision'    => 'Our Vision',
-            'about.what_we_do'    => 'What We Do',
             'about.secondary_note' => 'We are grateful for every volunteer, partner, and donor who makes this work possible. Together, we continue to be a source of hope and help.',
             'about.verse_body'    => '"Pure and undefiled religion before God is this: to care for orphans and widows in their distress."',
             'about.verse_cite'    => 'James 1:27',
@@ -115,6 +114,18 @@ if (!function_exists('t')) {
             'donate.upload_text'      => 'Click to upload or drag and drop',
             'donate.upload_hint'      => 'JPG, PNG, GIF or WebP — max 5 MB',
 
+            // Donate form — validation error messages
+            'donate.err_name_required'   => 'Please enter your name.',
+            'donate.err_name_long'       => 'Name must be 150 characters or fewer.',
+            'donate.err_email_long'      => 'Email must be 150 characters or fewer.',
+            'donate.err_email_invalid'   => 'Please enter a valid email address.',
+            'donate.err_phone_long'      => 'Phone must be 50 characters or fewer.',
+            'donate.err_amount_invalid'  => 'Enter a valid amount (up to 2 decimal places).',
+            'donate.err_ref_long'        => 'Bank reference must be 255 characters or fewer.',
+            'donate.err_msg_long'        => 'Message must be 65000 characters or fewer.',
+            'donate.err_screenshot_required' => 'Please upload a payment screenshot.',
+            'donate.err_form_generic'    => 'Sorry, we could not submit your donation right now. Please try again.',
+
             // Gallery page
             'gallery.gallery'    => 'Gallery',
             'gallery.back'       => '&larr; Back to Gallery',
@@ -162,7 +173,6 @@ if (!function_exists('t')) {
             // About page
             'about.our_mission'   => 'ተልዕኮአችን',
             'about.our_vision'    => 'ራዕያችን',
-            'about.what_we_do'    => 'የምናደርገው',
             'about.secondary_note' => 'ይህን ሥራ ለሚቻላቸው ለሁሉ ፈቃደኞች፣ አጋሮች እና ለጋሾች ምስጋናችን ይድረስ። አብረን ተስፋ እና እርዳታ ምንጭ መሆናችንን ቀጥለናል።',
             'about.verse_body'    => '"ፊቱ ፊቱ ንጹሕ ሃይማኖቱ ይህ ነው: ወላጆቻቸው ለሞቱ ልጆችና ለአርዖቶቻቸው ለማገልገል።"',
             'about.verse_cite'    => 'ያዕቆብ 1:27',
@@ -238,6 +248,18 @@ if (!function_exists('t')) {
             'donate.required_field'   => '*',
             'donate.upload_text'      => 'ጠቅ ያድርጉ ወይም ያጎትቱ',
             'donate.upload_hint'      => 'JPG, PNG, GIF ወይም WebP — ከፍተኛ 5 ሜጋ ባይት',
+
+            // Donate form — validation error messages
+            'donate.err_name_required'   => 'እባክዎ ስምዎን ያስገቡ።',
+            'donate.err_name_long'       => 'ስም ከ150 ቁምፊዎች መብለጥ አይችልም።',
+            'donate.err_email_long'      => 'ኢሜይል ከ150 ቁምፊዎች መብለጥ አይችልም።',
+            'donate.err_email_invalid'   => 'እባክዎ ትክክለኛ ኢሜይል አድራሻ ያስገቡ።',
+            'donate.err_phone_long'      => 'ስልክ ከ50 ቁምፊዎች መብለጥ አይችልም።',
+            'donate.err_amount_invalid'  => 'ትክክለኛ መጠን ያስገቡ (እስከ 2 ትንንሽ ቁጥሮች)።',
+            'donate.err_ref_long'        => 'የባንክ ማጣቀሻ ከ255 ቁምፊዎች መብለጥ አይችልም።',
+            'donate.err_msg_long'        => 'መልዕክት ከ65000 ቁምፊዎች መብለጥ አይችልም።',
+            'donate.err_screenshot_required' => 'እባክዎ የክፍያ ቅጽበታዊ ገጽ ያስሉጉ።',
+            'donate.err_form_generic'    => 'ይቅርታ፤ ልገሳዎን አሁን ማስረከብ አልቻልንም። እባክዎ እንደገና ይሞክሩ።',
 
             // Gallery page
             'gallery.gallery'    => 'ጋለሪ',
