@@ -19,10 +19,18 @@ function contact_setting_json(string $key, array $default = []): array {
     $d = json_decode($raw, true);
     return is_array($d) ? $d : $default;
 }
+function contact_setting_lang(string $key, string $lang, string $default = ''): string {
+    $val = contact_setting($key . '_' . $lang, '');
+    if ($val !== '') return $val;
+    return contact_setting($key, $default);
+}
+
+$lang = $_SESSION['lang'] ?? 'en';
+$lang = in_array($lang, ['en', 'am']) ? $lang : 'en';
 
 $contactEmail   = contact_setting('contact_email',   'info@simedalis.org');
 $contactPhones  = contact_setting_json('contact_phones', ['+000 000 000 0000']);
-$contactAddress = contact_setting('contact_address', 'Your Address Here');
+$contactAddress = contact_setting_lang('contact_address', $lang, 'Your Address Here');
 
 $pageTitle = t('nav.contact');
 require __DIR__ . '/../includes/header.php';

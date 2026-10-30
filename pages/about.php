@@ -18,18 +18,35 @@ function about_setting_json(string $key, array $default = []): array {
     $d = json_decode($raw, true);
     return is_array($d) ? $d : $default;
 }
+function about_setting_lang(string $key, string $lang, string $default = ''): string {
+    $val = about_setting($key . '_' . $lang, '');
+    if ($val !== '') return $val;
+    return about_setting($key, $default);
+}
 
-$aboutIntro = about_setting('about_intro', 'Semidalis is a gospel and charity team dedicated to proclaiming a message of hope and serving our community through practical acts of love. Rooted in James 1:27, we believe that true faith is shown in how we care for those around us.');
-$aboutMission = about_setting('about_mission', "To proclaim the gospel and demonstrate God's love through practical acts of charity, music, and community service — reaching every corner of our community with grace and compassion.");
-$aboutVision  = about_setting('about_vision',  'A community transformed by hope, where everyone — regardless of circumstance — experiences the love and grace we are called to share through the gospel of Christ.');
-$aboutWorkTitle = about_setting('about_work_title', 'What We Do');
-$aboutWorkDesc  = about_setting('about_work_desc',  'Our work spans worship, outreach, and practical support for families in need.');
-$aboutWorkItems = about_setting_json('about_work_items', [
-    ['title' => 'Gospel Music and Worship', 'description' => 'We organize gospel music events and worship gatherings that bring the community together in faith and praise.'],
-    ['title' => 'Community Outreach', 'description' => 'Our charity programs reach families and individuals facing hardship, providing practical support and encouragement.'],
-    ['title' => 'Support for Families in Need', 'description' => 'We stand alongside orphans, widows, and vulnerable families — walking with them through their difficulties.'],
-    ['title' => 'Fellowship and Inspiration', 'description' => 'We host gatherings that build community, nurture faith, and inspire people to live out the gospel in everyday life.'],
-]);
+$lang = $_SESSION['lang'] ?? 'en';
+$lang = in_array($lang, ['en', 'am']) ? $lang : 'en';
+
+$aboutIntro = about_setting_lang('about_intro', $lang, 'Semidalis is a gospel and charity team dedicated to proclaiming a message of hope and serving our community through practical acts of love. Rooted in James 1:27, we believe that true faith is shown in how we care for those around us.');
+$aboutMission = about_setting_lang('about_mission', $lang, "To proclaim the gospel and demonstrate God's love through practical acts of charity, music, and community service — reaching every corner of our community with grace and compassion.");
+$aboutVision  = about_setting_lang('about_vision',  $lang, 'A community transformed by hope, where everyone — regardless of circumstance — experiences the love and grace we are called to share through the gospel of Christ.');
+$aboutWorkTitle = about_setting_lang('about_work_title', $lang, 'What We Do');
+$aboutWorkDesc  = about_setting_lang('about_work_desc',  $lang, 'Our work spans worship, outreach, and practical support for families in need.');
+
+// about_work_items: try language-suffixed key first, fall back to base key
+$aboutWorkItemsRaw = about_setting('about_work_items_' . $lang, '');
+if ($aboutWorkItemsRaw !== '') {
+    $aboutWorkItemsDecoded = json_decode($aboutWorkItemsRaw, true);
+    $aboutWorkItems = is_array($aboutWorkItemsDecoded) ? $aboutWorkItemsDecoded : [];
+}
+if (empty($aboutWorkItems)) {
+    $aboutWorkItems = about_setting_json('about_work_items', [
+        ['title' => 'Gospel Music and Worship', 'description' => 'We organize gospel music events and worship gatherings that bring the community together in faith and praise.'],
+        ['title' => 'Community Outreach', 'description' => 'Our charity programs reach families and individuals facing hardship, providing practical support and encouragement.'],
+        ['title' => 'Support for Families in Need', 'description' => 'We stand alongside orphans, widows, and vulnerable families — walking with them through their difficulties.'],
+        ['title' => 'Fellowship and Inspiration', 'description' => 'We host gatherings that build community, nurture faith, and inspire people to live out the gospel in everyday life.'],
+    ]);
+}
 
 $pageTitle = t('nav.about');
 require __DIR__ . '/../includes/header.php';

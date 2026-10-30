@@ -42,12 +42,48 @@ function setting_json(string $key, array $default = []): array {
     return is_array($decoded) ? $decoded : $default;
 }
 
+// --- Data migration: copy base key into _en key if _en is empty ------------
+$langVariantKeys = [
+    'about_intro', 'about_mission', 'about_vision',
+    'about_work_title', 'about_work_desc', 'about_work_items',
+    'contact_address',
+];
+foreach ($langVariantKeys as $baseKey) {
+    $enKey  = $baseKey . '_en';
+    $enVal  = get_setting($enKey, '');
+    if ($enVal === '') {
+        $baseVal = get_setting($baseKey, '');
+        if ($baseVal !== '') {
+            save_setting($enKey, $baseVal);
+        }
+    }
+}
+
 $errors = [];
+
+// --- Active slang ----------------------------------------------------------
+$activeSlang = $_GET['slang'] ?? 'en';
+if (!in_array($activeSlang, ['en', 'am'], true)) $activeSlang = 'en';
 
 // --- POST handler ----------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     $tab = $_POST['tab'] ?? 'contact';
+    $postSlang = $_POST['slang'] ?? 'en';
+    if (!in_array($postSlang, ['en', 'am'], true)) $postSlang = 'en';
+    $activeSlang = $postSlang;
+
+    // Run migration again before saving (in case this is the very first POST)
+    foreach ($langVariantKeys as $baseKey) {
+        $enKey = $baseKey . '_en';
+        $enVal = get_setting($enKey, '');
+        if ($enVal === '') {
+            $baseVal = get_setting($baseKey, '');
+            if ($baseVal !== '') {
+                save_setting($enKey, $baseVal);
+            }
+        }
+    }
 
     // ---- Contact -----------------------------------------------------------
     if ($tab === 'contact') {
@@ -68,11 +104,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($errors)) {
             try {
-                save_setting('contact_email',   $email);
-                save_setting('contact_address', $address);
-                save_setting('contact_phones',  json_encode(array_values($phones)));
+                save_setting('contact_email',  $email);
+                save_setting('contact_phones', json_encode(array_values($phones)));
+                save_setting('contact_address_' . $postSlang, $address);
                 flash('settings_success', 'Contact info saved.');
-                header('Location: ' . url('admin/settings.php') . '?tab=contact');
+                header('Location: ' . url('admin/settings.php') . '?tab=contact&slang=' . $postSlang);
                 exit;
             } catch (PDOException $e) {
                 error_log('Settings save contact: ' . $e->getMessage());
@@ -110,7 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 save_setting('donation_banks', json_encode(array_values($banks)));
                 flash('settings_success', 'Bank details saved.');
-                header('Location: ' . url('admin/settings.php') . '?tab=donation');
+                header('Location: ' . url('admin/settings.php') . '?tab=donation&slang=en');
                 exit;
             } catch (PDOException $e) {
                 error_log('Settings save donation: ' . $e->getMessage());
@@ -145,14 +181,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($errors)) {
             try {
-                save_setting('about_intro',        $about_intro);
-                save_setting('about_mission',      $about_mission);
-                save_setting('about_vision',       $about_vision);
-                save_setting('about_work_title',   $about_work_title);
-                save_setting('about_work_desc',    $about_work_desc);
-                save_setting('about_work_items',   json_encode(array_values($workItems)));
+                save_setting('about_intro_'       . $postSlang, $about_intro);
+                save_setting('about_mission_'     . $postSlang, $about_mission);
+                save_setting('about_vision_'      . $postSlang, $about_vision);
+                save_setting('about_work_title_'  . $postSlang, $about_work_title);
+                save_setting('about_work_desc_'   . $postSlang, $about_work_desc);
+                save_setting('about_work_items_'  . $postSlang, json_encode(array_values($workItems)));
                 flash('settings_success', 'About info saved.');
-                header('Location: ' . url('admin/settings.php') . '?tab=about');
+                header('Location: ' . url('admin/settings.php') . '?tab=about&slang=' . $postSlang);
                 exit;
             } catch (PDOException $e) {
                 error_log('Settings save about: ' . $e->getMessage());
@@ -167,7 +203,7 @@ if (!in_array($activeTab, ['contact', 'donation', 'about'], true)) {
     $activeTab = 'contact';
 }
 
-// --- Load current values ---------------------------------------------------
+// --- Load current values (language-aware) ----------------------------------
 $defaultPhones = ['+000 000 000 0000'];
 $defaultBanks  = [[
     'account_name'   => 'Semidalis Gospel Team',
@@ -182,17 +218,31 @@ $defaultWorkItems = [
     ['title' => 'Fellowship and Inspiration', 'description' => 'We host gatherings that build community, nurture faith, and inspire people to live out the gospel in everyday life.'],
 ];
 
+// Helper: load language-suffixed key, fall back to base key
+function get_setting_lang(string $key, string $lang, string $default = ''): string {
+    $val = get_setting($key . '_' . $lang, '');
+    if ($val !== '') return $val;
+    return get_setting($key, $default);
+}
+function setting_json_lang(string $key, string $lang, array $default = []): array {
+    $raw = get_setting($key . '_' . $lang, '');
+    if ($raw === '') $raw = get_setting($key, '');
+    if ($raw === '') return $default;
+    $decoded = json_decode($raw, true);
+    return is_array($decoded) ? $decoded : $default;
+}
+
 $cur = [
     'contact_email'   => get_setting('contact_email',   'info@simedalis.org'),
     'contact_phones'  => setting_json('contact_phones',  $defaultPhones),
-    'contact_address' => get_setting('contact_address',  'Your Address Here'),
+    'contact_address' => get_setting_lang('contact_address', $activeSlang, 'Your Address Here'),
     'donation_banks'  => setting_json('donation_banks',  $defaultBanks),
-    'about_intro'     => get_setting('about_intro',   'Simedalis is a gospel and charity team dedicated to proclaiming a message of hope and serving our community through practical acts of love.'),
-    'about_mission'   => get_setting('about_mission', "To proclaim the gospel and demonstrate God's love through practical acts of charity, music, and community service."),
-    'about_vision'    => get_setting('about_vision',  'A community transformed by hope, where everyone experiences the love and grace we are called to share.'),
-    'about_work_title' => get_setting('about_work_title', 'What We Do'),
-    'about_work_desc'  => get_setting('about_work_desc',  'Our work spans worship, outreach, and practical support for families in need.'),
-    'about_work_items' => setting_json('about_work_items', $defaultWorkItems),
+    'about_intro'      => get_setting_lang('about_intro',      $activeSlang, 'Semidalis is a gospel and charity team dedicated to proclaiming a message of hope and serving our community through practical acts of love.'),
+    'about_mission'    => get_setting_lang('about_mission',    $activeSlang, "To proclaim the gospel and demonstrate God's love through practical acts of charity, music, and community service."),
+    'about_vision'     => get_setting_lang('about_vision',     $activeSlang, 'A community transformed by hope, where everyone experiences the love and grace we are called to share.'),
+    'about_work_title' => get_setting_lang('about_work_title', $activeSlang, 'What We Do'),
+    'about_work_desc'  => get_setting_lang('about_work_desc',  $activeSlang, 'Our work spans worship, outreach, and practical support for families in need.'),
+    'about_work_items' => setting_json_lang('about_work_items', $activeSlang, $defaultWorkItems),
 ];
 
 // Ensure arrays are not empty for form rendering
@@ -203,6 +253,33 @@ if (empty($cur['about_work_items'])) $cur['about_work_items'] = [['title'=>'','d
 require __DIR__ . '/../includes/admin_header.php';
 $flashSuccess = flash('settings_success');
 ?>
+<style>
+.settings-lang-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 18px;
+}
+.settings-lang-tab {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: .8rem;
+    font-weight: 600;
+    border: 1.5px solid var(--border, #ddd);
+    color: var(--text-muted, #666);
+    text-decoration: none;
+    transition: background .15s, color .15s;
+}
+.settings-lang-tab:hover {
+    background: var(--primary-light, #eef2ff);
+    color: var(--primary, #4f46e5);
+}
+.settings-lang-tab--active {
+    background: var(--primary, #4f46e5);
+    color: #fff;
+    border-color: var(--primary, #4f46e5);
+}
+</style>
 <div class="admin-content">
     <div class="admin-page-head">
         <h1><?= e(t('admin.settings.title')) ?></h1>
@@ -218,11 +295,11 @@ $flashSuccess = flash('settings_success');
 
     <!-- Tabs -->
     <div class="settings-tabs">
-        <a href="<?= e(url('admin/settings.php')) ?>?tab=contact"
+        <a href="<?= e(url('admin/settings.php')) ?>?tab=contact&slang=<?= e($activeSlang) ?>"
            class="settings-tab<?= $activeTab === 'contact'  ? ' settings-tab--active' : '' ?>"><?= e(t('admin.settings.contact_tab')) ?></a>
-        <a href="<?= e(url('admin/settings.php')) ?>?tab=donation"
+        <a href="<?= e(url('admin/settings.php')) ?>?tab=donation&slang=<?= e($activeSlang) ?>"
            class="settings-tab<?= $activeTab === 'donation' ? ' settings-tab--active' : '' ?>"><?= e(t('admin.settings.donation_tab')) ?></a>
-        <a href="<?= e(url('admin/settings.php')) ?>?tab=about"
+        <a href="<?= e(url('admin/settings.php')) ?>?tab=about&slang=<?= e($activeSlang) ?>"
            class="settings-tab<?= $activeTab === 'about'    ? ' settings-tab--active' : '' ?>"><?= e(t('admin.settings.about_tab')) ?></a>
     </div>
 
@@ -237,9 +314,19 @@ $flashSuccess = flash('settings_success');
                 <h2>Edit Contact Info</h2>
                 <p>Appears on the <a href="<?= e(url('pages/contact.php')) ?>" target="_blank">Contact page</a>.</p>
             </div>
+
+            <!-- Language sub-tabs -->
+            <div class="settings-lang-tabs">
+                <a href="?tab=contact&slang=en"
+                   class="settings-lang-tab<?= $activeSlang === 'en' ? ' settings-lang-tab--active' : '' ?>">English</a>
+                <a href="?tab=contact&slang=am"
+                   class="settings-lang-tab<?= $activeSlang === 'am' ? ' settings-lang-tab--active' : '' ?>">አማርኛ</a>
+            </div>
+
             <form method="post" action="<?= e(url('admin/settings.php')) ?>?tab=contact">
                 <?= csrf_field() ?>
                 <input type="hidden" name="tab" value="contact">
+                <input type="hidden" name="slang" value="<?= e($activeSlang) ?>">
 
                 <div class="form-group">
                     <label for="contact_email"><?= e(t('admin.settings.contact_email')) ?></label>
@@ -271,7 +358,8 @@ $flashSuccess = flash('settings_success');
                 </div>
 
                 <div class="form-group">
-                    <label for="contact_address"><?= e(t('admin.settings.contact_address')) ?></label>
+                    <label for="contact_address"><?= e(t('admin.settings.contact_address')) ?>
+                        (<?= $activeSlang === 'am' ? 'አማርኛ' : 'English' ?>)</label>
                     <input type="text" id="contact_address" name="contact_address"
                            value="<?= e(old('contact_address', $cur['contact_address'])) ?>"
                            maxlength="255" placeholder="Street, City, Province">
@@ -336,6 +424,7 @@ $flashSuccess = flash('settings_success');
             <form method="post" action="<?= e(url('admin/settings.php')) ?>?tab=donation">
                 <?= csrf_field() ?>
                 <input type="hidden" name="tab" value="donation">
+                <input type="hidden" name="slang" value="en">
 
                 <div id="banks-list">
                     <?php foreach ($cur['donation_banks'] as $i => $bank): ?>
@@ -413,21 +502,35 @@ $flashSuccess = flash('settings_success');
                 <h2>Edit About Info</h2>
                 <p>Appears on the <a href="<?= e(url('pages/about.php')) ?>" target="_blank">About page</a>.</p>
             </div>
+
+            <!-- Language sub-tabs -->
+            <div class="settings-lang-tabs">
+                <a href="?tab=about&slang=en"
+                   class="settings-lang-tab<?= $activeSlang === 'en' ? ' settings-lang-tab--active' : '' ?>">English</a>
+                <a href="?tab=about&slang=am"
+                   class="settings-lang-tab<?= $activeSlang === 'am' ? ' settings-lang-tab--active' : '' ?>">አማርኛ</a>
+            </div>
+
             <form method="post" action="<?= e(url('admin/settings.php')) ?>?tab=about">
                 <?= csrf_field() ?>
                 <input type="hidden" name="tab" value="about">
+                <input type="hidden" name="slang" value="<?= e($activeSlang) ?>">
+
                 <div class="form-group">
-                    <label for="about_intro"><?= e(t('admin.settings.about_intro')) ?></label>
+                    <label for="about_intro"><?= e(t('admin.settings.about_intro')) ?>
+                        (<?= $activeSlang === 'am' ? 'አማርኛ' : 'English' ?>)</label>
                     <textarea id="about_intro" name="about_intro" rows="4"
-                              placeholder="Short intro describing who Simedalis is..."><?= e(old('about_intro', $cur['about_intro'])) ?></textarea>
+                              placeholder="Short intro describing who Semidalis is..."><?= e(old('about_intro', $cur['about_intro'])) ?></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="about_mission"><?= e(t('admin.settings.mission')) ?></label>
+                    <label for="about_mission"><?= e(t('admin.settings.mission')) ?>
+                        (<?= $activeSlang === 'am' ? 'አማርኛ' : 'English' ?>)</label>
                     <textarea id="about_mission" name="about_mission" rows="3"
                               placeholder="Our mission is..."><?= e(old('about_mission', $cur['about_mission'])) ?></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="about_vision"><?= e(t('admin.settings.vision')) ?></label>
+                    <label for="about_vision"><?= e(t('admin.settings.vision')) ?>
+                        (<?= $activeSlang === 'am' ? 'አማርኛ' : 'English' ?>)</label>
                     <textarea id="about_vision" name="about_vision" rows="3"
                               placeholder="Our vision is..."><?= e(old('about_vision', $cur['about_vision'])) ?></textarea>
                 </div>
@@ -436,14 +539,16 @@ $flashSuccess = flash('settings_success');
                 <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--border);">
 
                 <div class="form-group">
-                    <label for="about_work_title"><?= e(t('admin.settings.work_title')) ?></label>
+                    <label for="about_work_title"><?= e(t('admin.settings.work_title')) ?>
+                        (<?= $activeSlang === 'am' ? 'አማርኛ' : 'English' ?>)</label>
                     <input type="text" id="about_work_title" name="about_work_title"
                            value="<?= e(old('about_work_title', $cur['about_work_title'])) ?>"
                            maxlength="100" placeholder="What We Do">
                 </div>
 
                 <div class="form-group">
-                    <label for="about_work_desc"><?= e(t('admin.settings.work_desc')) ?></label>
+                    <label for="about_work_desc"><?= e(t('admin.settings.work_desc')) ?>
+                        (<?= $activeSlang === 'am' ? 'አማርኛ' : 'English' ?>)</label>
                     <input type="text" id="about_work_desc" name="about_work_desc"
                            value="<?= e(old('about_work_desc', $cur['about_work_desc'])) ?>"
                            maxlength="255" placeholder="Our work spans worship, outreach, and practical support for families in need.">
@@ -451,7 +556,8 @@ $flashSuccess = flash('settings_success');
 
                 <!-- Multiple work items -->
                 <div class="form-group">
-                    <label><?= e(t('admin.settings.work_items')) ?></label>
+                    <label><?= e(t('admin.settings.work_items')) ?>
+                        (<?= $activeSlang === 'am' ? 'አማርኛ' : 'English' ?>)</label>
                     <div id="work-items-list">
                         <?php foreach ($cur['about_work_items'] as $i => $item): ?>
                         <div class="multi-work-item" data-index="<?= $i ?>">
