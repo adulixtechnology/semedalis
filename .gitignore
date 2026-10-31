@@ -1,0 +1,9 @@
+node_modules/
+uploads/
+.env
+backend/.env
+config/config.local.php
+build/
+dist/
+*.log
+.DS_Store

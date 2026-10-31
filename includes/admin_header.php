@@ -3,17 +3,22 @@
  * Admin layout shell — white topbar, sidebar, main wrapper.
  */
 require_admin();
-$adminTitle = $adminTitle ?? 'Dashboard';
-$adminUser  = $_SESSION['admin_username'] ?? 'Admin';
+$adminTitle   = $adminTitle ?? 'Dashboard';
+$adminUser    = $_SESSION['admin_username'] ?? 'Admin';
 $adminInitial = strtoupper(mb_substr($adminUser, 0, 1));
-$curLang = $_SESSION['lang'] ?? 'en';
-$baseUri = strtok($_SERVER['REQUEST_URI'] ?? '', '?');
-$params  = $_GET;
-unset($params['lang']);
-$queryEn = http_build_query(array_merge($params, ['lang' => 'en']));
-$queryAm = http_build_query(array_merge($params, ['lang' => 'am']));
-$hrefEn  = $baseUri . ($queryEn ? '?' . $queryEn : '');
-$hrefAm  = $baseUri . ($queryAm ? '?' . $queryAm : '');
+$curLang      = $_SESSION['lang'] ?? 'en';
+
+// Build toggle hrefs that go through lang.php so the session is reliably set
+// then redirect straight back to the current page (without ?lang= in the URL).
+$currentUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
+    . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost')
+    . ($_SERVER['REQUEST_URI'] ?? '/');
+// Strip any existing lang param from the current URL so we don't double-append
+$currentUrlClean = preg_replace('/([?&])lang=[^&]*(&|$)/', '$1', $currentUrl);
+$currentUrlClean = rtrim($currentUrlClean, '?&');
+
+$hrefEn = url('lang.php') . '?lang=en&redirect=' . urlencode($currentUrlClean);
+$hrefAm = url('lang.php') . '?lang=am&redirect=' . urlencode($currentUrlClean);
 ?>
 <!doctype html>
 <html lang="<?= $curLang === 'am' ? 'am' : 'en' ?>">

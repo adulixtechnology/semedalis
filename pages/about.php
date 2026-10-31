@@ -27,13 +27,15 @@ function about_setting_lang(string $key, string $lang, string $default = ''): st
 $lang = $_SESSION['lang'] ?? 'en';
 $lang = in_array($lang, ['en', 'am']) ? $lang : 'en';
 
-$aboutIntro = about_setting_lang('about_intro', $lang, 'Semidalis is a gospel and charity team dedicated to proclaiming a message of hope and serving our community through practical acts of love. Rooted in James 1:27, we believe that true faith is shown in how we care for those around us.');
-$aboutMission = about_setting_lang('about_mission', $lang, "To proclaim the gospel and demonstrate God's love through practical acts of charity, music, and community service — reaching every corner of our community with grace and compassion.");
-$aboutVision  = about_setting_lang('about_vision',  $lang, 'A community transformed by hope, where everyone — regardless of circumstance — experiences the love and grace we are called to share through the gospel of Christ.');
+$aboutIntro         = about_setting_lang('about_intro',          $lang, 'Semidalis is a gospel and charity team dedicated to proclaiming a message of hope and serving our community through practical acts of love. Rooted in James 1:27, we believe that true faith is shown in how we care for those around us.');
+$aboutSecondaryNote = about_setting_lang('about_secondary_note', $lang, t('about.secondary_note'));
+$aboutMission       = about_setting_lang('about_mission', $lang, "To proclaim the gospel and demonstrate God's love through practical acts of charity, music, and community service — reaching every corner of our community with grace and compassion.");
+$aboutVision        = about_setting_lang('about_vision',  $lang, 'A community transformed by hope, where everyone — regardless of circumstance — experiences the love and grace we are called to share through the gospel of Christ.');
 $aboutWorkTitle = about_setting_lang('about_work_title', $lang, 'What We Do');
 $aboutWorkDesc  = about_setting_lang('about_work_desc',  $lang, 'Our work spans worship, outreach, and practical support for families in need.');
 
 // about_work_items: try language-suffixed key first, fall back to base key
+$aboutWorkItems = []; // initialise before use
 $aboutWorkItemsRaw = about_setting('about_work_items_' . $lang, '');
 if ($aboutWorkItemsRaw !== '') {
     $aboutWorkItemsDecoded = json_decode($aboutWorkItemsRaw, true);
@@ -58,7 +60,7 @@ require __DIR__ . '/../includes/header.php';
     <section class="section about-intro">
         <div class="about-intro__text">
             <p><?= e($aboutIntro) ?></p>
-            <p><?= t('about.secondary_note') ?></p>
+            <p><?= e($aboutSecondaryNote) ?></p>
         </div>
         <blockquote class="about-intro__verse">
             <p><?= t('about.verse_body') ?></p>
